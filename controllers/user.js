@@ -1,5 +1,6 @@
 const { createUser, getUserByEmail } = require('../models/user');
 const { generateToken } = require('../services/jwtService');
+const bcrypt = require('bcryptjs');
 
 const registerOrLogin = async (req, res) => {
     console.log(req.body)
@@ -9,13 +10,14 @@ const registerOrLogin = async (req, res) => {
     let user = await getUserByEmail(email);
 
     if (!user) {
-      user = await createUser(email, password);
+      const hashedPassword = await bcrypt.hash(password, 10)
+      user = await createUser(email, hashedPassword)
     }
 
     const token = generateToken(user.id);
 
     res.status(200).json({
-      message: 'Berhasil login atau register',
+      message: 'Register or Login Succesfully',
       token,
       user: {
         id: user.id,
@@ -25,7 +27,7 @@ const registerOrLogin = async (req, res) => {
 
   } catch (err) {
     console.error(err.message);
-    res.status(500).json({ message: 'Terjadi kesalahan pada server' });
+    res.status(500).json({ message: 'Internal Server Error'})
   }
 };
 
